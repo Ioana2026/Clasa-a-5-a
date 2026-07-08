@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super-Aventura Matematicii - Clasa a V-a</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Iconițe Copilărești -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts: Comfortaa și Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- MathJax pentru Formule Elegante -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Comfortaa', 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #fef3c7, #fef2f2, #e0f2fe);
+        }
+        .mcq-label {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .mcq-input:checked + .mcq-label {
+            background-color: #f0fdf4;
+            border-color: #4ade80;
+            color: #15803d;
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(74, 222, 128, 0.2);
+        }
+        .tab-active {
+            transform: translateY(-4px);
+        }
+        .floating-star {
+            animation: bounce 2s infinite ease-in-out;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(10deg); }
+        }
+        /* Ascunde scrollbar implicit pentru navigarea pe mobil */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  
+            scrollbar-width: none;  
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-diploma-area, #print-diploma-area * {
+                visibility: visible;
+            }
+            #print-diploma-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: 8px double #d97706 !important;
+                background: white !important;
+                box-shadow: none !important;
+                padding: 2rem !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen">
+
+    <!-- MODAL INITIAL INTRODUCERE NUME -->
+    <div id="name-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 text-center border-4 border-yellow-400 shadow-2xl transform transition-all relative">
+            <div class="text-6xl mb-4 floating-star">🚀</div>
+            <h2 class="text-2xl font-bold text-indigo-900 mb-2">Salut, Super-Matematicianule!</h2>
+            <p class="text-slate-600 mb-6 text-sm">Introdu numele tău complet pentru ca progresul tău excelent să fie salvat și trimis direct către profesorul tău!</p>
+            
+            <input type="text" id="student-name" class="w-full px-4 py-3 rounded-2xl border-2 border-indigo-200 focus:border-indigo-500 focus:outline-none text-center font-bold text-lg mb-4 shadow-inner" placeholder="Ex: Popescu Andrei">
+            
+            <div id="modal-error" class="text-rose-500 font-bold text-xs mb-4 hidden">
+                ⚠️ Te rog scrie numele tău complet (minimum 3 caractere)!
+            </div>
+
+            <button onclick="startAdventure()" class="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold py-4 rounded-2xl shadow-lg hover:brightness-110 transition duration-200 text-lg">
+                Să începem aventura! 🌟
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL DE FELICITĂRI LA CAPITOL FINALIZAT -->
+    <div id="congrats-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 text-center border-4 border-emerald-400 shadow-2xl relative overflow-hidden">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-3xl font-bold text-emerald-600 mb-2">Uau! Senzațional!</h2>
+            <p class="text-slate-700 mb-6 font-semibold">Ai rezolvat corect toate cele 10 exerciții din această misiune! Progresul tău a fost înregistrat cu succes! 🎉</p>
+            <button onclick="closeCongrats()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-2xl shadow-md transition duration-200">
+                Super! Continui aventura! 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL SUCCES TRIMITERE PROGRES -->
+    <div id="submit-success-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 text-center border-4 border-indigo-400 shadow-2xl relative overflow-hidden">
+            <div class="text-6xl mb-4 floating-star">📬</div>
+            <h2 class="text-2xl font-bold text-indigo-900 mb-2">Progres Trimis! 🎈</h2>
+            <p class="text-slate-700 mb-6 font-semibold">Progresul tău (<span id="success-score" class="text-pink-500 font-black">0</span>/40 exerciții rezolvate) a fost trimis cu succes către profesorul tău!</p>
+            <button onclick="closeSubmitModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl shadow-md transition duration-200">
+                Super, înapoi la exerciții! 🌟
+            </button>
+        </div>
+    </div>
+
+    <!-- Header Principal -->
+    <header class="bg-white/80 backdrop-blur-md shadow-lg border-b-4 border-indigo-100 sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 to-indigo-600 text-white flex items-center justify-center text-3xl shadow-lg">
+                    🎒
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-indigo-900 tracking-tight flex items-center gap-2">
+                        Super-Mate <span class="text-xs bg-yellow-300 text-yellow-900 px-3 py-1 rounded-full font-extrabold shadow-sm">Misiune Clasa V</span>
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-500 font-bold">Campion: <span id="display-student-name" class="text-pink-500 font-extrabold">Vizitator</span></p>
+                </div>
+            </div>
+            
+            <div class="bg-indigo-50 px-5 py-3 rounded-2xl border-2 border-indigo-100 shadow-inner flex flex-col items-center gap-1 w-full sm:w-auto">
+                <div class="flex justify-between w-full text-xs font-bold text-slate-600 gap-6">
+                    <span>Misiuni Finalizate:</span>
+                    <span id="progress-text" class="text-indigo-600 font-black">0 / 40</span>
+                </div>
+                <div class="w-48 sm:w-60 h-3.5 bg-slate-200 rounded-full overflow-hidden shadow-inner mt-1">
+                    <div id="progress-bar" class="h-full bg-gradient-to-r from-amber-400 via-pink-500 to-emerald-400 rounded-full transition-all duration-500 w-0"></div>
+                </div>
+                
+                <button id="btn-trimite-progres" onclick="genereazaDiplomaDinHeader()" class="mt-2 w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:brightness-110 text-white font-bold py-2.5 px-4 rounded-xl shadow-md text-xs flex items-center justify-center gap-2 transition duration-200 transform hover:scale-[1.01]">
+                    <i class="fas fa-graduation-cap animate-bounce"></i> Generează Diploma Mea 🎓
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+        
+        <!-- Meniul de Navigare (Taburi colorate) -->
+        <div class="flex overflow-x-auto gap-3 pb-4 no-scrollbar">
+            <button id="btn-naturale" onclick="switchTab('naturale')" class="tab-btn tab-active bg-gradient-to-br from-amber-400 to-orange-500 text-white py-4 px-5 rounded-2xl text-sm font-bold transition duration-300 shadow-lg flex items-center gap-2 border-b-4 border-orange-700 shrink-0">
+                <span class="text-xl">🎒</span> Numere Naturale
+            </button>
+            <button id="btn-ordinare" onclick="switchTab('ordinare')" class="tab-btn bg-white hover:bg-slate-50 text-slate-700 py-4 px-5 rounded-2xl text-sm font-bold transition duration-300 shadow-md flex items-center gap-2 border-b-4 border-slate-200 shrink-0">
+                <span class="text-xl">🍕</span> Fracții Ordinare
+            </button>
+            <button id="btn-zecimale" onclick="switchTab('zecimale')" class="tab-btn bg-white hover:bg-slate-50 text-slate-700 py-4 px-5 rounded-2xl text-sm font-bold transition duration-300 shadow-md flex items-center gap-2 border-b-4 border-slate-200 shrink-0">
+                <span class="text-xl">🪙</span> Fracții Zecimale
+            </button>
+            <button id="btn-masura" onclick="switchTab('masura')" class="tab-btn bg-white hover:bg-slate-50 text-slate-700 py-4 px-5 rounded-2xl text-sm font-bold transition duration-300 shadow-md flex items-center gap-2 border-b-4 border-slate-200 shrink-0">
+                <span class="text-xl">⚖️</span> Unități de Măsură
+            </button>
+            <button id="btn-diploma" onclick="switchTab('diploma')" class="tab-btn bg-white hover:bg-slate-50 text-slate-700 py-4 px-5 rounded-2xl text-sm font-bold transition duration-300 shadow-md flex items-center gap-2 border-b-4 border-slate-200 shrink-0">
+                <span class="text-xl">🎓</span> Diploma Mea
+            </button>
+        </div>
+
+        <!-- ======================= SECTIUNEA 1: NUMERE NATURALE ======================= -->
+        <section id="sec-naturale" class="tab-content block space-y-6">
+            <div class="bg-gradient-to-r from-amber-100 to-orange-100 border-l-8 border-orange-500 p-5 rounded-2xl shadow-sm mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
+                <span class="text-4xl">🎒</span>
+                <div>
+                    <h2 class="text-xl font-bold text-orange-950">Misiunea 1: Împărăția Numerelor Naturale</h2>
+                    <p class="text-sm text-orange-900 mt-1">Rezolvă cele 10 puzzle-uri matematice pentru a deschide porțile castelului!</p>
+                </div>
+            </div>
+
+            <!-- Breviar Teoretic Secțiunea 1 -->
+            <div class="bg-amber-50 border-2 border-dashed border-amber-300 rounded-3xl p-6 text-slate-700 space-y-3">
+                <h3 class="font-bold text-amber-800 text-lg flex items-center gap-2">💡 Super-Sfatul Profesorului: Numerele Naturale</h3>
+                <ul class="list-disc pl-5 space-y-1 text-sm leading-relaxed">
+                    <li><strong>Ordinea operațiilor:</strong> Întotdeauna efectuăm mai întâi operațiile din paranteze, apoi <em>ridicările la putere</em>, <em>înmulțirile și împărțirile</em>, iar la final <em>adunările și scăderile</em> (în ordinea în care sunt scrise).</li>
+                    <li><strong>Puterile:</strong> $a^n$ înseamnă că înmulțim pe $a$ cu el însuși de $n$ ori. Ex: $3^3 = 3 \times 3 \times 3 = 27$.</li>
+                    <li><strong>Teorema Împărțirii cu Rest:</strong> $D = Î \times C + R$, unde restul $R$ este strict mai mic decât împărțitorul $Î$ ($R < Î$).</li>
+                    <li><strong>Numere Prime:</strong> Sunt numerele care au doar 2 divizori (pe 1 și pe ele însele). Singurul număr prim par este $2$!</li>
+                </ul>
+            </div>
+
+            <!-- Ex 1.1 -->
+            <div id="card-nn_1" class="bg-white p-6 rounded-3xl shadow-md border-3 border-orange-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 1 - Ordinea operațiilor</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Calculează rezultatul operației: <br> $ 125 + 75 - 50 = $ </p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="nn_1" class="w-full sm:w-48 bg-slate-50 border-2 border-orange-200 text-orange-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Scrie numărul...">
+                    <button onclick="checkInput('nn_1')" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-nn_1" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 1.2 -->
+            <div id="card-nn_2" class="bg-white p-6 rounded-3xl shadow-md border-3 border-orange-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 2 - Prioritate</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Calculează respectând prioritatea operațiilor: <br> $ 2 + 2 \times 2 = $ </p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="nn_2" class="w-full sm:w-48 bg-slate-50 border-2 border-orange-200 text-orange-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Rezultat...">
+                    <button onclick="checkInput('nn_2')" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-nn_2" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 1.3 -->
+            <div id="card-nn_3" class="bg-white p-6 rounded-3xl shadow-md border-3 border-orange-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 3 - Puteri</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Calculează puterea: $ 3^3 = $ </p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="nn_3" class="w-full sm:w-48 bg-slate-50 border-2 border-orange-200 text-orange-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Rezultat...">
+                    <button onclick="checkInput('nn_3')" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-nn_3" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 1.4 -->
+            <div id="card-nn_4" class="bg-white p-6 rounded-3xl shadow-md border-3 border-orange-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 4 - Teorema Împărțirii cu Rest</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Află restul împărțirii numărului $ 29 $ la $ 4 $.</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="nn_4" class="w-full sm:w-48 bg-slate-50 border-2 border-orange-200 text-orange-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Restul este...">
+                    <button onclick="checkInput('nn_4')" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-nn_4" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 1.5 -->
+            <div id="card-nn_5" class="bg-white p-6 rounded-3xl shadow-md border-3 border-orange-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 5 - Scriere în cifre</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Scrie în cifre numărul natural: **cincisute doi**.</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="nn_5" class="w-full sm:w-48 bg-slate-50 border-2 border-orange-200 text-orange-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Cifre...">
+                    <button onclick="checkInput('nn_5')" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-nn_5" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 1.6 -->
+            <div id="card-nn_6" class="bg-white p-6 rounded-3xl shadow-md border-3 border-orange-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 6 - Cifre distincte</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Care este cel mai mare număr natural de 3 cifre **distincte** (diferite)?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="nn_6" class="w-full sm:w-48 bg-slate-50 border-2 border-orange-200 text-orange-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Numărul...">
+                    <button onclick="checkInput('nn_6')" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-nn_6" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 1.7 -->
+            <div id="card-nn_7" class="bg-white p-6 rounded-3xl shadow-md border-3 border-orange-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 7 - Factor comun</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Calculează rapid folosind factorul comun: <br> $ 12 \times 7 + 12 \times 3 = $</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="nn_7" class="w-full sm:w-48 bg-slate-50 border-2 border-orange-200 text-orange-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Rezultat...">
+                    <button onclick="checkInput('nn_7')" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-nn_7" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 1.8 -->
+            <div id="card-nn_8" class="bg-white p-6 rounded-3xl shadow-md border-3 border-orange-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 8 - Numere prime</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Care este cel mai mic număr prim par?</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <input type="radio" name="nn_8" id="nn_8_a" value="a" class="mcq-input hidden">
+                        <label for="nn_8_a" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">0</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="nn_8" id="nn_8_b" value="b" class="mcq-input hidden">
+                        <label for="nn_8_b" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">1</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="nn_8" id="nn_8_c" value="c" class="mcq-input hidden">
+                        <label for="nn_8_c" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">2</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="nn_8" id="nn_8_d" value="d" class="mcq-input hidden">
+                        <label for="nn_8_d" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">4</label>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="checkMCQ('nn_8')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-nn_8" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 1.9 -->
+            <div id="card-nn_9" class="bg-white p-6 rounded-3xl shadow-md border-3 border-orange-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 9 - Sumă numere nenule</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Află suma primelor 3 numere naturale **nenule** (mai mari decât 0).</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="nn_9" class="w-full sm:w-48 bg-slate-50 border-2 border-orange-200 text-orange-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Suma...">
+                    <button onclick="checkInput('nn_9')" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-nn_9" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 1.10 -->
+            <div id="card-nn_10" class="bg-white p-6 rounded-3xl shadow-md border-3 border-orange-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 10 - Ecuație simplă</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Află numărul necunoscut $x$ din relația: <br> $ x + 15 = 40 $ </p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="nn_10" class="w-full sm:w-48 bg-slate-50 border-2 border-orange-200 text-orange-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="x = ...">
+                    <button onclick="checkInput('nn_10')" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-nn_10" class="text-sm"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= SECTIUNEA 2: FRACȚII ORDINARE ======================= -->
+        <section id="sec-ordinare" class="tab-content hidden space-y-6">
+            <div class="bg-gradient-to-r from-indigo-100 to-purple-100 border-l-8 border-indigo-500 p-5 rounded-2xl shadow-sm mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
+                <span class="text-4xl">🍕</span>
+                <div>
+                    <h2 class="text-xl font-bold text-indigo-900">Misiunea 2: Fracții Ordinare</h2>
+                    <p class="text-sm text-indigo-800 mt-1">Rezolvă cele 10 exerciții pline de gust! Fiecare răspuns corect te aduce mai aproape de premiu!</p>
+                </div>
+            </div>
+
+            <!-- Breviar Teoretic Secțiunea 2 -->
+            <div class="bg-indigo-50 border-2 border-dashed border-indigo-300 rounded-3xl p-6 text-slate-700 space-y-3">
+                <h3 class="font-bold text-indigo-800 text-lg flex items-center gap-2">💡 Super-Sfatul Profesorului: Fracții Ordinare</h3>
+                <ul class="list-disc pl-5 space-y-1 text-sm leading-relaxed">
+                    <li>O fracție ordinară are forma $ \frac{a}{b} $. <strong>$a$ (numărătorul)</strong> ne spune câte părți am luat, iar <strong>$b$ (numitorul)</strong> ne spune în câte părți egale a fost împărțit întregul (ex: o pizza).</li>
+                    <li><strong>Clasificare:</strong>
+                        <ul class="list-circle pl-5 space-y-0.5 mt-1">
+                            <li><em>Subunitară</em>: numărătorul este mai mic decât numitorul ($a < b$). Valoarea ei este mai mică decât 1.</li>
+                            <li><em>Echiunitară</em>: numărătorul este egal cu numitorul ($a = b$). Valoarea ei este egală cu 1.</li>
+                            <li><em>Supraunitară</em>: numărătorul este mai mare decât numitorul ($a > b$). Valoarea ei este mai mare decât 1.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Amplificare & Simplificare:</strong> Amplificarea înseamnă să înmulțim și numărătorul, și numitorul cu același număr. Simplificarea înseamnă să-i împărțim pe amândoi.</li>
+                </ul>
+            </div>
+
+            <!-- Ex 2.1 -->
+            <div id="card-fo_1" class="bg-white p-6 rounded-3xl shadow-md border-3 border-indigo-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 1 - Numitorul</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Care este numitorul fracției ordinarre $ \frac{3}{7} $ ?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fo_1" class="w-full sm:w-48 bg-slate-50 border-2 border-indigo-200 text-indigo-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Numărul...">
+                    <button onclick="checkInput('fo_1')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md shadow-indigo-200">Verifică ✨</button>
+                    <div id="feedback-fo_1" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 2.2 -->
+            <div id="card-fo_2" class="bg-white p-6 rounded-3xl shadow-md border-3 border-indigo-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 2 - Numărătorul</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Care este numărătorul fracției ordinarre $ \frac{5}{9} $ ?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fo_2" class="w-full sm:w-48 bg-slate-50 border-2 border-indigo-200 text-indigo-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Numărul...">
+                    <button onclick="checkInput('fo_2')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fo_2" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 2.3 -->
+            <div id="card-fo_3" class="bg-white p-6 rounded-3xl shadow-md border-3 border-indigo-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 3 - Tipul fracției</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Ce fel de fracție este $ \frac{11}{4} $ ?</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <input type="radio" name="fo_3" id="fo_3_a" value="subunitara" class="mcq-input hidden">
+                        <label for="fo_3_a" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">Subunitară</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="fo_3" id="fo_3_b" value="supraunitara" class="mcq-input hidden">
+                        <label for="fo_3_b" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">Supraunitară</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="fo_3" id="fo_3_c" value="echiunitara" class="mcq-input hidden">
+                        <label for="fo_3_c" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">Echiunitară</label>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="checkMCQ('fo_3')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fo_3" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 2.4 -->
+            <div id="card-fo_4" class="bg-white p-6 rounded-3xl shadow-md border-3 border-indigo-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 4 - Echiunitate</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Află numărul natural $x$ pentru care fracția $ \frac{x}{8} $ este echiunitară.</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fo_4" class="w-full sm:w-48 bg-slate-50 border-2 border-indigo-200 text-indigo-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="x = ...">
+                    <button onclick="checkInput('fo_4')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fo_4" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 2.5 -->
+            <div id="card-fo_5" class="bg-white p-6 rounded-3xl shadow-md border-3 border-indigo-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 5 - Întregi în fracție</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Introducem întregii în fracție pentru: $ 2 \frac{1}{3} $. Care este numărătorul fracției obținute?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fo_5" class="w-full sm:w-48 bg-slate-50 border-2 border-indigo-200 text-indigo-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Numărătorul...">
+                    <button onclick="checkInput('fo_5')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fo_5" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 2.6 -->
+            <div id="card-fo_6" class="bg-white p-6 rounded-3xl shadow-md border-3 border-indigo-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 6 - Adunare</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Dacă calculăm $ \frac{2}{7} + \frac{3}{7} = \frac{x}{7} $, care este valoarea lui $x$?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fo_6" class="w-full sm:w-48 bg-slate-50 border-2 border-indigo-200 text-indigo-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="x = ...">
+                    <button onclick="checkInput('fo_6')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fo_6" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 2.7 -->
+            <div id="card-fo_7" class="bg-white p-6 rounded-3xl shadow-md border-3 border-indigo-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 7 - Scădere</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Dacă calculăm $ \frac{9}{10} - \frac{3}{10} = \frac{x}{10} $, care este valoarea lui $x$?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fo_7" class="w-full sm:w-48 bg-slate-50 border-2 border-indigo-200 text-indigo-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="x = ...">
+                    <button onclick="checkInput('fo_7')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fo_7" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 2.8 -->
+            <div id="card-fo_8" class="bg-white p-6 rounded-3xl shadow-md border-3 border-indigo-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 8 - Amplificare</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Dacă amplificăm fracția $ \frac{2}{3} $ cu $4$, obținem fracția $ \frac{8}{y} $. Cât este $y$?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fo_8" class="w-full sm:w-48 bg-slate-50 border-2 border-indigo-200 text-indigo-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="y = ...">
+                    <button onclick="checkInput('fo_8')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fo_8" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 2.9 -->
+            <div id="card-fo_9" class="bg-white p-6 rounded-3xl shadow-md border-3 border-indigo-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 9 - Fracție dintr-un număr</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Cât reprezintă $ \frac{3}{4} $ din numărul $20$?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fo_9" class="w-full sm:w-48 bg-slate-50 border-2 border-indigo-200 text-indigo-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Rezultat...">
+                    <button onclick="checkInput('fo_9')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fo_9" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 2.10 -->
+            <div id="card-fo_10" class="bg-white p-6 rounded-3xl shadow-md border-3 border-indigo-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 10 - Simplificare</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">După simplificarea fracției $ \frac{10}{15} $ prin $5$, obținem fracția $ \frac{a}{3} $. Află valoarea lui $a$.</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fo_10" class="w-full sm:w-48 bg-slate-50 border-2 border-indigo-200 text-indigo-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="a = ...">
+                    <button onclick="checkInput('fo_10')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fo_10" class="text-sm"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= SECTIUNEA 3: FRACȚII ZECIMALE ======================= -->
+        <section id="sec-zecimale" class="tab-content hidden space-y-6">
+            <div class="bg-gradient-to-r from-pink-100 to-rose-100 border-l-8 border-pink-500 p-5 rounded-2xl shadow-sm mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
+                <span class="text-4xl">🪙</span>
+                <div>
+                    <h2 class="text-xl font-bold text-pink-900">Misiunea 3: Fracții Zecimale (Numere cu virgulă)</h2>
+                    <p class="text-sm text-pink-700 mt-1">Găsește secretele cifrelor cu virgulă în această colecție de 10 super exerciții!</p>
+                </div>
+            </div>
+
+            <!-- Breviar Teoretic Secțiunea 3 -->
+            <div class="bg-pink-50 border-2 border-dashed border-pink-300 rounded-3xl p-6 text-slate-700 space-y-3">
+                <h3 class="font-bold text-pink-800 text-lg flex items-center gap-2">💡 Super-Sfatul Profesorului: Fracții Zecimale</h3>
+                <ul class="list-disc pl-5 space-y-1 text-sm leading-relaxed">
+                    <li>Fracțiile zecimale sunt numerele scrise cu virgulă. Ex: $45,72$.</li>
+                    <li><strong>Structura:</strong>
+                        <ul class="list-circle pl-5 space-y-0.5 mt-1">
+                            <li>Partea din stânga virgulei se numește <strong>parte întreagă</strong> ($45$).</li>
+                            <li>Partea din dreapta virgulei se numește <strong>parte zecimală</strong>. Prima cifră după virgulă reprezintă <em>zecimile</em> ($7$), iar a doua cifră reprezintă <em>sutimile</em> ($2$).</li>
+                        </ul>
+                    </li>
+                    <li><strong>Adunarea & Scăderea:</strong> Se așază numerele unul sub celălalt astfel încât <strong>virgula să fie sub virgulă</strong>!</li>
+                    <li><strong>Înmulțirea & Împărțirea cu 10, 100:</strong> La înmulțire, mutăm virgula spre dreapta peste atâtea cifre câte zerouri avem. La împărțire, mutăm virgula spre stânga.</li>
+                </ul>
+            </div>
+
+            <!-- Ex 3.1 -->
+            <div id="card-fz_1" class="bg-white p-6 rounded-3xl shadow-md border-3 border-pink-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-pink-500"></div>
+                <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 1 - Transformare</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Cum se scrie fracția ordinară $ \frac{13}{10} $ sub formă de fracție zecimală?</p>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <input type="radio" name="fz_1" id="fz_1_a" value="a" class="mcq-input hidden">
+                        <label for="fz_1_a" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">1,3</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="fz_1" id="fz_1_b" value="b" class="mcq-input hidden">
+                        <label for="fz_1_b" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">0,13</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="fz_1" id="fz_1_c" value="c" class="mcq-input hidden">
+                        <label for="fz_1_c" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">13</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="fz_1" id="fz_1_d" value="d" class="mcq-input hidden">
+                        <label for="fz_1_d" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">1,03</label>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="checkMCQ('fz_1')" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md shadow-pink-200">Verifică ✨</button>
+                    <div id="feedback-fz_1" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 3.2 -->
+            <div id="card-fz_2" class="bg-white p-6 rounded-3xl shadow-md border-3 border-pink-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-pink-500"></div>
+                <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 2 - Partea întreagă</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Care este partea întreagă a numărului zecimal $45,72$?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fz_2" class="w-full sm:w-48 bg-slate-50 border-2 border-pink-200 text-pink-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Partea întreagă...">
+                    <button onclick="checkInput('fz_2')" class="w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fz_2" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 3.3 -->
+            <div id="card-fz_3" class="bg-white p-6 rounded-3xl shadow-md border-3 border-pink-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-pink-500"></div>
+                <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 3 - Sutimile</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Identifică cifra **sutimilor** din numărul zecimal $8,246$.</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="fz_3" class="w-full sm:w-48 bg-slate-50 border-2 border-pink-200 text-pink-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Cifra...">
+                    <button onclick="checkInput('fz_3')" class="w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fz_3" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 3.4 -->
+            <div id="card-fz_4" class="bg-white p-6 rounded-3xl shadow-md border-3 border-pink-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-pink-500"></div>
+                <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 4 - Adunare zecimală</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Calculează suma: $ 1,2 + 3,5 = $</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="text" id="fz_4" class="w-full sm:w-48 bg-slate-50 border-2 border-pink-200 text-pink-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Răspuns...">
+                    <button onclick="checkDecimalInput('fz_4')" class="w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fz_4" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 3.5 -->
+            <div id="card-fz_5" class="bg-white p-6 rounded-3xl shadow-md border-3 border-pink-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-pink-500"></div>
+                <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 5 - Scădere zecimală</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Calculează diferența: $ 5,8 - 2,3 = $</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="text" id="fz_5" class="w-full sm:w-48 bg-slate-50 border-2 border-pink-200 text-pink-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Răspuns...">
+                    <button onclick="checkDecimalInput('fz_5')" class="w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fz_5" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 3.6 -->
+            <div id="card-fz_6" class="bg-white p-6 rounded-3xl shadow-md border-3 border-pink-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-pink-500"></div>
+                <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 6 - Înmulțire rapidă</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Calculează înmulțirea: $ 4,56 \times 10 = $</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="text" id="fz_6" class="w-full sm:w-48 bg-slate-50 border-2 border-pink-200 text-pink-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Răspuns...">
+                    <button onclick="checkDecimalInput('fz_6')" class="w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fz_6" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 3.7 -->
+            <div id="card-fz_7" class="bg-white p-6 rounded-3xl shadow-md border-3 border-pink-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-pink-500"></div>
+                <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 7 - Împărțire rapidă</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Calculează împărțirea: $ 23,5 : 10 = $</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="text" id="fz_7" class="w-full sm:w-48 bg-slate-50 border-2 border-pink-200 text-pink-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Răspuns...">
+                    <button onclick="checkDecimalInput('fz_7')" class="w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fz_7" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 3.8 -->
+            <div id="card-fz_8" class="bg-white p-6 rounded-3xl shadow-md border-3 border-pink-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-pink-500"></div>
+                <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 8 - Înmulțire zecimale</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Calculează rezultatul: $ 0,3 \times 0,2 = $</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="text" id="fz_8" class="w-full sm:w-48 bg-slate-50 border-2 border-pink-200 text-pink-900 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Răspuns...">
+                    <button onclick="checkDecimalInput('fz_8')" class="w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fz_8" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 3.9 -->
+            <div id="card-fz_9" class="bg-white p-6 rounded-3xl shadow-md border-3 border-pink-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-pink-500"></div>
+                <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 9 - Comparare</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Care număr zecimal este mai mare?</p>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <input type="radio" name="fz_9" id="fz_9_a" value="a" class="mcq-input hidden">
+                        <label for="fz_9_a" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">4,5</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="fz_9" id="fz_9_b" value="b" class="mcq-input hidden">
+                        <label for="fz_9_b" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">4,12</label>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="checkMCQ('fz_9')" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fz_9" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 3.10 -->
+            <div id="card-fz_10" class="bg-white p-6 rounded-3xl shadow-md border-3 border-pink-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-pink-500"></div>
+                <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 10 - Rotunjire</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Aproximarea prin **lipsă** la unități a numărului zecimal $7,8$ este:</p>
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <input type="radio" name="fz_10" id="fz_10_a" value="a" class="mcq-input hidden">
+                        <label for="fz_10_a" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">7</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="fz_10" id="fz_10_b" value="b" class="mcq-input hidden">
+                        <label for="fz_10_b" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">8</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="fz_10" id="fz_10_c" value="c" class="mcq-input hidden">
+                        <label for="fz_10_c" class="mcq-label block border-2 border-slate-200 rounded-2xl p-4 text-center font-bold text-slate-700 hover:bg-slate-50">7,5</label>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="checkMCQ('fz_10')" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-fz_10" class="text-sm"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= SECTIUNEA 4: UNITĂȚI DE MĂSURĂ ======================= -->
+        <section id="sec-masura" class="tab-content hidden space-y-6">
+            <div class="bg-gradient-to-r from-cyan-100 to-blue-100 border-l-8 border-cyan-500 p-5 rounded-2xl shadow-sm mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
+                <span class="text-4xl">⚖️</span>
+                <div>
+                    <h2 class="text-xl font-bold text-cyan-900">Misiunea 4: Stăpânul Unităților de Măsură</h2>
+                    <p class="text-sm text-cyan-800 mt-1">Transformă lungimi, mase, volume și timp în ultimele 10 exerciții ale aventurii noastre!</p>
+                </div>
+            </div>
+
+            <!-- Breviar Teoretic Secțiunea 4 -->
+            <div class="bg-cyan-50 border-2 border-dashed border-cyan-300 rounded-3xl p-6 text-slate-700 space-y-3">
+                <h3 class="font-bold text-cyan-800 text-lg flex items-center gap-2">💡 Super-Sfatul Profesorului: Unitățile de Măsură</h3>
+                <ul class="list-disc pl-5 space-y-1 text-sm leading-relaxed">
+                    <li><strong>Lungime (Metrul):</strong> $1 \text{ km} = 1000 \text{ m}$, $1 \text{ m} = 10 \text{ dm} = 100 \text{ cm} = 1000 \text{ mm}$.</li>
+                    <li><strong>Masă (Gramul):</strong> $1 \text{ kg} = 1000 \text{ g}$. Jumătate de kilogram înseamnă $500 \text{ g}$.</li>
+                    <li><strong>Capacitate (Litrul):</strong> $1 \text{ l} = 1000 \text{ ml}$.</li>
+                    <li><strong>Timp:</strong> $1 \text{ oră} = 60 \text{ minute}$, $1 \text{ minut} = 60 \text{ secunde}$.</li>
+                    <li><strong>Bani:</strong> $1 \text{ leu} = 100 \text{ bani}$.</li>
+                </ul>
+            </div>
+
+            <!-- Ex 4.1 -->
+            <div id="card-um_1" class="bg-white p-6 rounded-3xl shadow-md border-3 border-cyan-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 1 - Metrul</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Transformă în metri: $ 5 \text{ km} = \dots \text{ m}$</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="um_1" class="w-full sm:w-48 bg-slate-50 border-2 border-cyan-200 text-cyan-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="metri...">
+                    <button onclick="checkInput('um_1')" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-um_1" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 4.2 -->
+            <div id="card-um_2" class="bg-white p-6 rounded-3xl shadow-md border-3 border-cyan-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 2 - Masa</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Transformă în grame: $ 2 \text{ kg} = \dots \text{ g}$</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="um_2" class="w-full sm:w-48 bg-slate-50 border-2 border-cyan-200 text-cyan-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="grame...">
+                    <button onclick="checkInput('um_2')" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-um_2" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 4.3 -->
+            <div id="card-um_3" class="bg-white p-6 rounded-3xl shadow-md border-3 border-cyan-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 3 - Timp</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Transformă în minute: $ 3 \text{ ore} = \dots \text{ minute}$</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="um_3" class="w-full sm:w-48 bg-slate-50 border-2 border-cyan-200 text-cyan-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="minute...">
+                    <button onclick="checkInput('um_3')" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-um_3" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 4.4 -->
+            <div id="card-um_4" class="bg-white p-6 rounded-3xl shadow-md border-3 border-cyan-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 4 - Capacitate</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Transformă în mililitri: $ 1 \text{ litru} = \dots \text{ ml}$</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="um_4" class="w-full sm:w-48 bg-slate-50 border-2 border-cyan-200 text-cyan-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="ml...">
+                    <button onclick="checkInput('um_4')" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-um_4" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 4.5 -->
+            <div id="card-um_5" class="bg-white p-6 rounded-3xl shadow-md border-3 border-cyan-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 5 - Unități de arie</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Un pătrat cu latura de $1 \text{ dm}$ are aria de câți centimetri pătrați ($\text{cm}^2$)? <br> <span class="text-xs text-slate-500">(Sfat: $1 \text{ dm} = 10 \text{ cm}$)</span></p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="um_5" class="w-full sm:w-48 bg-slate-50 border-2 border-cyan-200 text-cyan-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="cm²...">
+                    <button onclick="checkInput('um_5')" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-um_5" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 4.6 -->
+            <div id="card-um_6" class="bg-white p-6 rounded-3xl shadow-md border-3 border-cyan-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 6 - Transformare lungime</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Transformă în centimetri: $ 450 \text{ mm} = \dots \text{ cm}$</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="um_6" class="w-full sm:w-48 bg-slate-50 border-2 border-cyan-200 text-cyan-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="cm...">
+                    <button onclick="checkInput('um_6')" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-um_6" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 4.7 -->
+            <div id="card-um_7" class="bg-white p-6 rounded-3xl shadow-md border-3 border-cyan-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 7 - Secunde</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Câte secunde are un minut întreg?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="um_7" class="w-full sm:w-48 bg-slate-50 border-2 border-cyan-200 text-cyan-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Secunde...">
+                    <button onclick="checkInput('um_7')" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-um_7" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 4.8 -->
+            <div id="card-um_8" class="bg-white p-6 rounded-3xl shadow-md border-3 border-cyan-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 8 - Masă</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Jumătate de kilogram reprezintă câte grame?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="um_8" class="w-full sm:w-48 bg-slate-50 border-2 border-cyan-200 text-cyan-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="grame...">
+                    <button onclick="checkInput('um_8')" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-um_8" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 4.9 -->
+            <div id="card-um_9" class="bg-white p-6 rounded-3xl shadow-md border-3 border-cyan-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 9 - Sumă lungimi</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">Calculează suma și exprim-o în metri: <br> $ 12 \text{ m} + 800 \text{ cm} = \dots \text{ m}$</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="um_9" class="w-full sm:w-48 bg-slate-50 border-2 border-cyan-200 text-cyan-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="metri...">
+                    <button onclick="checkInput('um_9')" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-um_9" class="text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Ex 4.10 -->
+            <div id="card-um_10" class="bg-white p-6 rounded-3xl shadow-md border-3 border-cyan-100 transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full">Exercițiul 10 - Monede</span>
+                <p class="text-slate-700 my-4 text-lg font-semibold">De câte monede de $50$ de bani ai nevoie pentru a strânge o sumă de $5$ lei?</p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <input type="number" id="um_10" class="w-full sm:w-48 bg-slate-50 border-2 border-cyan-200 text-cyan-950 text-xl rounded-2xl block p-3 text-center font-bold" placeholder="Monede...">
+                    <button onclick="checkInput('um_10')" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 px-8 rounded-2xl transition duration-200 shadow-md">Verifică ✨</button>
+                    <div id="feedback-um_10" class="text-sm"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= SECTIUNEA 5: DIPLOMĂ DE MERIT ======================= -->
+        <section id="sec-diploma" class="tab-content hidden space-y-6">
+            <div class="bg-gradient-to-r from-violet-100 to-indigo-100 border-l-8 border-indigo-500 p-5 rounded-2xl shadow-sm flex items-center gap-4 no-print">
+                <span class="text-4xl">🎓</span>
+                <div>
+                    <h2 class="text-xl font-bold text-indigo-950">Misiunea Finală: Descarcă-ți și Printează-ți Diploma!</h2>
+                    <p class="text-sm text-indigo-850 mt-1">Ai muncit din greu, acum a sosit momentul să fii premiat ca un adevărat campion al matematicii!</p>
+                </div>
+            </div>
+
+            <!-- Previzualizare Diplomă Stilizată Regal -->
+            <div id="print-diploma-area" class="bg-white rounded-3xl p-8 sm:p-12 border-8 border-amber-500 shadow-2xl relative overflow-hidden max-w-3xl mx-auto text-center bg-[radial-gradient(#fffbeb_1px,transparent_1px)] [background-size:16px_16px]">
+                
+                <!-- Elemente decorative colțuri -->
+                <div class="absolute top-4 left-4 text-amber-500 text-xl sm:text-2xl">✨</div>
+                <div class="absolute top-4 right-4 text-amber-500 text-xl sm:text-2xl">✨</div>
+                <div class="absolute bottom-4 left-4 text-amber-500 text-xl sm:text-2xl">✨</div>
+                <div class="absolute bottom-4 right-4 text-amber-500 text-xl sm:text-2xl">✨</div>
+
+                <!-- Coroana de aur dinamica (doar la 40/40) -->
+                <div id="diploma-crown" class="text-6xl sm:text-7xl mb-4 transform hover:scale-110 transition duration-300">🎓</div>
+                
+                <h3 class="text-amber-600 font-extrabold text-base tracking-widest uppercase mb-1">Caiet de Vacanță - Clasa a V-a</h3>
+                <h2 id="diploma-title-main" class="text-3xl sm:text-4xl font-black text-indigo-950 tracking-tight mb-6">DIPLOMĂ DE MERIT</h2>
+                
+                <p class="text-slate-500 italic text-sm sm:text-base mb-2">Se acordă cu mândrie deosebită super-matematicianului:</p>
+                
+                <!-- Numele complet în mod dinamic -->
+                <h4 id="diploma-student-name" class="text-2xl sm:text-4xl font-black text-pink-600 border-b-2 border-dashed border-pink-200 inline-block px-8 py-2 mb-6 tracking-wide">
+                    Popescu Andrei
+                </h4>
+                
+                <p class="text-slate-700 font-semibold max-w-xl mx-auto text-sm sm:text-base mb-8 leading-relaxed">
+                    Pentru rezolvarea cu succes și curaj a <span id="diploma-score" class="text-indigo-600 font-black text-lg sm:text-xl">0</span> din 40 de exerciții ale aventurii matematice, demonstrând o minte sclipitoare, atenție la detalii și multă perseverență!
+                </p>
+
+                <div class="grid grid-cols-2 gap-8 pt-6 border-t-2 border-slate-100 text-left">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-bold">Data acordării:</p>
+                        <p id="diploma-date" class="text-slate-800 font-bold text-sm sm:text-base">8 iulie 2026</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-400 uppercase font-bold">Semnătura:</p>
+                        <p class="text-slate-800 font-black text-sm sm:text-base italic font-serif">Profesorul de Matematică ✍️</p>
+                    </div>
+                </div>
+
+                <!-- Panglică decorativă absolută -->
+                <div class="absolute -bottom-8 -left-8 w-24 h-24 bg-amber-500 rounded-full flex items-center justify-center text-white text-3xl font-extrabold rotate-12 shadow-md border-4 border-white">
+                    100%
+                </div>
+            </div>
+
+            <!-- Buton de Printare -->
+            <div class="text-center no-print">
+                <button onclick="window.print()" class="bg-gradient-to-r from-amber-500 to-yellow-600 hover:brightness-110 text-white font-black py-4 px-10 rounded-2xl shadow-xl hover:shadow-2xl transition duration-300 text-lg flex items-center justify-center gap-3 mx-auto">
+                    <i class="fas fa-print text-xl animate-bounce"></i> Printează Diploma sau Salvează ca PDF! 🖨️
+                </button>
+                <p id="diploma-hint" class="text-xs text-slate-500 mt-3 font-semibold">
+                    Sfat: Completează cât mai multe exerciții pentru un scor excelent pe diplomă! 🌟
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Scriptul principal de logică și conectare la Cloud -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variabile Bază de Date Globale
+        let app = null;
+        let db = null;
+        let auth = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'mate-clasa-5-vacanta';
+
+        // Inițializare Firebase 11.6.1
+        try {
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+            }
+        } catch (e) {
+            console.warn("Rulare offline (local). Firebase nu a fost inițializat:", e);
+        }
+
+        // Funcția de Autentificare conform Regulii 3 Stricte
+        async function ensureAuth() {
+            if (!auth) return null;
+            if (auth.currentUser) return auth.currentUser;
+            
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                return auth.currentUser;
+            } catch (err) {
+                console.error("Autentificarea Firebase a eșuat:", err);
+                return null;
+            }
+        }
+
+        // State-ul local al aplicatiei
+        let state = {
+            studentName: '',
+            progress: {} 
+        };
+
+        // Răspunsurile corecte
+        const correctAnswers = {
+            'nn_1': '150', 'nn_2': '6', 'nn_3': '27', 'nn_4': '1', 'nn_5': '502',
+            'nn_6': '987', 'nn_7': '120', 'nn_8': 'c', 'nn_9': '6', 'nn_10': '25',
+            'fo_1': '7', 'fo_2': '5', 'fo_3': 'supraunitara', 'fo_4': '8', 'fo_5': '7',
+            'fo_6': '5', 'fo_7': '6', 'fo_8': '12', 'fo_9': '15', 'fo_10': '2',
+            'fz_1': 'a', 'fz_2': '45', 'fz_3': '4', 'fz_4': '4.7', 'fz_5': '3.5',
+            'fz_6': '45.6', 'fz_7': '2.35', 'fz_8': '0.06', 'fz_9': 'a', 'fz_10': 'a',
+            'um_1': '5000', 'um_2': '2000', 'um_3': '180', 'um_4': '1000', 'um_5': '100',
+            'um_6': '45', 'um_7': '60', 'um_8': '500', 'um_9': '20', 'um_10': '10'
+        };
+
+        // Pornirea Aventurii
+        async function startAdventure() {
+            const nameInput = document.getElementById('student-name').value.trim();
+            const errorEl = document.getElementById('modal-error');
+
+            if (nameInput.length < 3) {
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+            state.studentName = nameInput;
+            document.getElementById('display-student-name').innerText = nameInput;
+            document.getElementById('name-modal').classList.add('hidden');
+
+            // Încercăm să încărcăm progresul salvat local
+            const savedLocal = localStorage.getItem(`mate5_progres_${nameInput.toLowerCase().replace(/\s+/g, '_')}`);
+            if (savedLocal) {
+                state.progress = JSON.parse(savedLocal);
+            } else {
+                state.progress = {};
+            }
+
+            // Trimitem datele inițiale în Cloud
+            await syncWithCloud();
+            updateUI();
+        }
+
+        // Navigarea dinamică între tab-uri
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(sec => sec.classList.add('hidden'));
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn bg-white hover:bg-slate-50 text-slate-700 py-4 px-5 rounded-2xl text-sm font-bold transition duration-300 shadow-md flex items-center gap-2 border-b-4 border-slate-200 shrink-0";
+            });
+
+            const activeSec = document.getElementById('sec-' + tabId);
+            if (activeSec) activeSec.classList.remove('hidden');
+
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                let gradientClasses = "";
+                let borderClass = "";
+
+                if (tabId === 'naturale') {
+                    gradientClasses = "bg-gradient-to-br from-amber-400 to-orange-500";
+                    borderClass = "border-orange-700";
+                } else if (tabId === 'ordinare') {
+                    gradientClasses = "bg-gradient-to-br from-indigo-500 to-purple-600";
+                    borderClass = "border-indigo-700";
+                } else if (tabId === 'zecimale') {
+                    gradientClasses = "bg-gradient-to-br from-pink-500 to-rose-600";
+                    borderClass = "border-rose-700";
+                } else if (tabId === 'masura') {
+                    gradientClasses = "bg-gradient-to-br from-cyan-500 to-blue-600";
+                    borderClass = "border-blue-700";
+                } else if (tabId === 'diploma') {
+                    gradientClasses = "bg-gradient-to-br from-violet-500 to-indigo-600";
+                    borderClass = "border-indigo-800";
+                    renderDiplomaDetails();
+                }
+
+                activeBtn.className = `tab-btn tab-active ${gradientClasses} text-white py-4 px-5 rounded-2xl text-sm font-bold transition duration-300 shadow-lg flex items-center gap-2 border-b-4 ${borderClass} shrink-0`;
+            }
+        }
+
+        // Randarea detaliilor dinamice pe Diplomă
+        function renderDiplomaDetails() {
+            const solvedCount = Object.keys(state.progress).filter(k => state.progress[k] === true).length;
+            
+            document.getElementById('diploma-student-name').innerText = state.studentName;
+            document.getElementById('diploma-score').innerText = solvedCount;
+            
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const today = new Date();
+            document.getElementById('diploma-date').innerText = today.toLocaleDateString('ro-RO', options);
+
+            const crownEl = document.getElementById('diploma-crown');
+            const titleEl = document.getElementById('diploma-title-main');
+            const hintEl = document.getElementById('diploma-hint');
+
+            if (solvedCount === 40) {
+                crownEl.innerText = "👑";
+                titleEl.innerText = "DIPLOMĂ DE AUR";
+                titleEl.className = "text-3xl sm:text-4xl font-black text-amber-600 tracking-tight mb-6 animate-pulse";
+                hintEl.innerText = "Senzațional! Ai obținut titlul suprem de Rege al Matematicii de Clasa a V-a! 🌟🏆";
+                hintEl.className = "text-sm text-emerald-600 mt-3 font-bold";
+            } else {
+                crownEl.innerText = "🎓";
+                titleEl.innerText = "DIPLOMĂ DE MERIT";
+                titleEl.className = "text-3xl sm:text-4xl font-black text-indigo-950 tracking-tight mb-6";
+                hintEl.innerText = "Sfat: Pentru a debloca Diploma de Aur cu Coroană, rezolvă toate cele 40 de exerciții! 👑";
+                hintEl.className = "text-xs text-slate-500 mt-3 font-semibold";
+            }
+        }
+
+        // Verificări inputuri
+        function checkInput(qId) {
+            const userVal = document.getElementById(qId).value.trim();
+            validate(qId, userVal);
+        }
+
+        function checkDecimalInput(qId) {
+            let userVal = document.getElementById(qId).value.trim();
+            userVal = userVal.replace(',', '.'); 
+            validate(qId, userVal);
+        }
+
+        function checkMCQ(qId) {
+            const selected = document.querySelector(`input[name="${qId}"]:checked`);
+            if (selected) {
+                validate(qId, selected.value);
+            } else {
+                showFeedback(qId, false, true);
+            }
+        }
+
+        // Validare Centralizată
+        async function validate(qId, userVal) {
+            if (userVal === '') {
+                showFeedback(qId, false, true);
+                return;
+            }
+
+            const isCorrect = userVal.toLowerCase() === correctAnswers[qId];
+            showFeedback(qId, isCorrect, false);
+
+            if (isCorrect) {
+                state.progress[qId] = true;
+                
+                localStorage.setItem(`mate5_progres_${state.studentName.toLowerCase().replace(/\s+/g, '_')}`, JSON.stringify(state.progress));
+                updateUI();
+                
+                await syncWithCloud();
+                checkChapterCompletion(qId);
+            }
+        }
+
+        // Vizualizarea feedback-ului în interiorul cardurilor
+        function showFeedback(qId, isCorrect, isEmpty) {
+            const feedbackEl = document.getElementById('feedback-' + qId);
+            const cardEl = document.getElementById('card-' + qId);
+
+            if (isEmpty) {
+                feedbackEl.innerHTML = '<span class="text-amber-500 font-bold text-xs"><i class="fas fa-exclamation-circle"></i> Completează răspunsul!</span>';
+                return;
+            }
+
+            if (isCorrect) {
+                feedbackEl.innerHTML = '<span class="text-emerald-500 font-bold text-sm flex items-center gap-1"><i class="fas fa-magic animate-pulse"></i> Excelent! Corect! ⭐</span>';
+                cardEl.className = `bg-emerald-50/50 p-6 rounded-3xl shadow-inner border-3 border-emerald-400 transition-all duration-300 relative overflow-hidden scale-[1.01]`;
+            } else {
+                feedbackEl.innerHTML = '<span class="text-rose-500 font-bold text-sm flex items-center gap-1"><i class="fas fa-undo"></i> Mai încearcă!</span>';
+                cardEl.className = `bg-rose-50/50 p-6 rounded-3xl shadow-md border-3 border-rose-300 transition-all duration-300 relative overflow-hidden`;
+            }
+        }
+
+        // Verificare Finalizare Capitol curent
+        function checkChapterCompletion(qId) {
+            let prefix = "";
+            if (qId.startsWith('nn_')) prefix = "nn_";
+            else if (qId.startsWith('fo_')) prefix = "fo_";
+            else if (qId.startsWith('fz_')) prefix = "fz_";
+            else if (qId.startsWith('um_')) prefix = "um_";
+            
+            let finishedAll = true;
+            for (let i = 1; i <= 10; i++) {
+                if (!state.progress[prefix + i]) {
+                    finishedAll = false;
+                    break;
+                }
+            }
+
+            if (finishedAll) {
+                document.getElementById('congrats-modal').classList.remove('hidden');
+            }
+        }
+
+        function closeCongrats() {
+            document.getElementById('congrats-modal').classList.add('hidden');
+        }
+
+        // Actualizare Bară Progres UI
+        function updateUI() {
+            const solvedKeys = Object.keys(state.progress).filter(k => state.progress[k] === true);
+            const totalSolved = solvedKeys.length;
+            const percentage = (totalSolved / 40) * 100;
+
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+            document.getElementById('progress-text').innerText = `${totalSolved} / 40`;
+
+            solvedKeys.forEach(qId => {
+                const cardEl = document.getElementById('card-' + qId);
+                const feedbackEl = document.getElementById('feedback-' + qId);
+                
+                if (cardEl && feedbackEl) {
+                    cardEl.className = "bg-emerald-50/50 p-6 rounded-3xl shadow-inner border-3 border-emerald-300 transition-all duration-300 relative overflow-hidden";
+                    feedbackEl.innerHTML = '<span class="text-emerald-500 font-bold text-sm flex items-center gap-1"><i class="fas fa-check-circle"></i> Rezolvat corect! 🏆</span>';
+                }
+            });
+        }
+
+        // Salvare în Cloud conform regulilor stricte
+        async function syncWithCloud() {
+            if (!db || !state.studentName) return;
+            const user = await ensureAuth();
+            if (!user) return;
+
+            const studentId = state.studentName.toLowerCase().replace(/\s+/g, '_');
+            const docId = `student_${studentId}`;
+
+            let nnCount = 0, foCount = 0, fzCount = 0, umCount = 0;
+            for (let i = 1; i <= 10; i++) {
+                if (state.progress[`nn_${i}`] === true) nnCount++;
+                if (state.progress[`fo_${i}`] === true) foCount++;
+                if (state.progress[`fz_${i}`] === true) fzCount++;
+                if (state.progress[`um_${i}`] === true) umCount++;
+            }
+
+            // Calcalează calea STRICTĂ conform REGULII 1
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'student_progress', docId);
+
+            try {
+                await setDoc(docRef, {
+                    nume: state.studentName,
+                    scorNaturale: nnCount,
+                    scorOrdinare: foCount,
+                    scorZecimale: fzCount,
+                    scorMasura: umCount,
+                    progresTotal: nnCount + foCount + fzCount + umCount,
+                    detalii: state.progress,
+                    actualizatLa: serverTimestamp()
+                }, { merge: true });
+            } catch (err) {
+                console.warn("Eroare trimitere cloud:", err);
+            }
+        }
+
+        // Atribuirea funcțiilor către window pentru a asigura rularea corectă din HTML
+        window.startAdventure = startAdventure;
+        window.switchTab = switchTab;
+        window.checkInput = checkInput;
+        window.checkDecimalInput = checkDecimalInput;
+        window.checkMCQ = checkMCQ;
+        window.closeCongrats = closeCongrats;
+        window.closeSubmitModal = function() {
+            document.getElementById('submit-success-modal').classList.add('hidden');
+        };
+        
+        async function genereazaDiplomaDinHeader() {
+            const btn = document.getElementById('btn-trimite-progres');
+            const originalContent = btn.innerHTML;
+            
+            if (!state.studentName || state.studentName === 'Vizitator') {
+                document.getElementById('name-modal').classList.remove('hidden');
+                return;
+            }
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i> Se generează... ⏳';
+                
+                // Sincronizăm progresul în cloud în mod silențios
+                await syncWithCloud();
+                
+                // Schimbăm tabul activ la diplomă
+                switchTab('diploma');
+                
+                // Facem scroll fluid direct la diplomă
+                document.getElementById('sec-diploma').scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                console.error("Eroare la generarea diplomei:", err);
+                // Chiar dacă e o problemă de conexiune la internet, tot îi deschidem diploma locală
+                switchTab('diploma');
+                document.getElementById('sec-diploma').scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }
+
+        window.genereazaDiplomaDinHeader = genereazaDiplomaDinHeader;
+    </script>
+</body>
+</html>
